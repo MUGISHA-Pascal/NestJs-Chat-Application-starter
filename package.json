@@ -35,6 +35,7 @@
     "class-validator": "^0.14.1",
     "fs": "^0.0.1-security",
     "graphql-upload": "^17.0.0",
+    "jsonwebtoken": "^9.0.2",
     "prisma": "^6.2.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
