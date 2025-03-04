@@ -4,7 +4,7 @@ import { Auth } from './entities/auth.entity';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { UpdateAuthInput } from './dto/update-auth.input';
 import { BadRequestException, UseFilters } from '@nestjs/common';
-import { GraphQlExceptionHandler } from 'src/filter/custom-handler.filter';
+import { GraphQlExceptionHandler } from 'src/filter/custom-exception.filter';
 import { LoginResponse, RegisterResponse } from './types';
 import { LoginDTO, RegisterDTO } from './dto/auth.dto';
 import { Request, Response } from 'express';

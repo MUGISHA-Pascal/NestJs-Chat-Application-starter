@@ -11,7 +11,7 @@ export class LiveChatroomService {
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
     });
   }
-  async addLiveUserToChatroom(chatroomId: number, user: User): Promise<void> {
+  async addLiveUserToChatroom(chatroomId: number, user: any): Promise<void> {
     const existingLiveUsers = await this.getLiveUsersForChatroom(chatroomId);
     const existingUser = existingLiveUsers.find(
       (liveUser) => liveUser.id === user.id,
@@ -26,7 +26,7 @@ export class LiveChatroomService {
   }
   async removeLiveUserFromChatroom(
     chatroomId: number,
-    user: User,
+    user: any,
   ): Promise<void> {
     await this.redisClient
       .srem(`liveUsers:chatroom:${chatroomId}`, JSON.stringify(user))

@@ -13,8 +13,12 @@ import { PubSub } from 'graphql-subscriptions';
 import { UserService } from 'src/user/services/user.service';
 import { User } from 'src/user/types/user.type';
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { GraphQlExceptionHandler } from 'src/filter/custom-handler.filter';
 import { GraphqlAuthGuard } from 'src/auth/graphql-auth.guard';
+import { Request } from 'express';
+import { GraphQlErrorFilter } from 'src/filter/custom-exception.filter';
+interface CRequest extends Request {
+  user: any;
+}
 @Resolver(() => LiveChatroom)
 export class LiveChatroomResolver {
   private pubSub: PubSub;
@@ -36,13 +40,47 @@ export class LiveChatroomResolver {
       `liveUsersInChatroom.${chatroomId}`,
     );
   }
-  @UseFilters(GraphQlExceptionHandler)
+  @UseFilters(GraphQlErrorFilter)
   @UseGuards(GraphqlAuthGuard)
-  @Mutation(() => boolean)
+  @Mutation(() => Boolean)
   async enterChatroom(
     @Args('chatroomId') chatroomId: number,
-    @Context() context: { req: Request },
+    @Context() context: { req: CRequest },
   ) {
-    const user = await this.userService.getUser;
+    const user = await this.userService.getUser(context.req.user.sub);
+    if (user) {
+      await this.liveChatroomService.addLiveUserToChatroom(chatroomId, user);
+    }
+    const liveUsers = await this.liveChatroomService
+      .getLiveUsersForChatroom(chatroomId)
+      .catch((err) => {
+        console.log(`getLiveUsersForChatroom error`, err);
+      });
+    await this.pubSub
+      .publish(`liveUsersInChatroom.${chatroomId}`, {
+        liveUsers,
+        chatroomId,
+      })
+      .catch((err) => {
+        console.log('pubsub error', err);
+      });
+    return true;
+  }
+  @UseFilters(GraphQlErrorFilter)
+  @UseGuards(GraphqlAuthGuard)
+  @Mutation(() => Boolean)
+  async leaveChatRoom(
+    @Args('chatroomId') chatroomId: number,
+    @Context() context: { req: CRequest },
+  ) {
+    const user = await this.userService.getUser(context.req.user.sub);
+    await this.liveChatroomService.removeLiveUserFromChatroom(chatroomId, user);
+    const liveUsers =
+      await this.liveChatroomService.getLiveUsersForChatroom(chatroomId);
+    await this.pubSub.publish(`liveUsersInChatroom.${chatroomId}`, {
+      liveUsers,
+      chatroomId,
+    });
+    return true;
   }
 }
