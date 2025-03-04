@@ -52,7 +52,7 @@ export class UserService {
           contains: fullname,
         },
         id: {
-          not: userId,
+          not: Number(userId),
         },
       },
     });
